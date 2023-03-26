@@ -163,6 +163,8 @@ class BotAgent:
       self.order_dict["order_id_m2"] = quote_order["order"]["id"]
       self.order_dict["order_time_m2"] = datetime.now().isoformat()
     except Exception as e:
+      print(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
+      send_message(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
       self.order_dict["pair_status"] = "ERROR"
       self.order_dict["comments"] = f"Market 2 {self.market_2}: , {e}"
       return self.order_dict
@@ -177,6 +179,7 @@ class BotAgent:
 
       # Close order 1:
       try:
+        print(f"Could not place second order, return status: {order_status_m2}, attempting to close first order")
         close_order = place_market_order(
           self.client,
           market=self.market_1,
