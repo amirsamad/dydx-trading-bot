@@ -12,7 +12,7 @@ from func_messaging import send_message
 if __name__ == "__main__":
 
   # Message on start
-  send_message("Bot launch successful")
+  #send_message("Bot launch successful")
 
   # Connect to client
   try:

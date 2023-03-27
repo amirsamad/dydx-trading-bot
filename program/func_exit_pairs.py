@@ -82,6 +82,16 @@ def manage_trade_exits(client):
 
     # Guard: If not all match exit with error
     if not check_m1 or not check_m2 or not check_live:
+      if not check_m1: print("check_m1")
+      if not check_m2:
+        print("check_m2")
+        print(position_market_m2)
+        print(order_market_m2)
+        print(position_size_m2)
+        print(order_size_m2)
+        print(position_side_m2)
+        print(order_side_m2)
+      if not check_live: print("check_live")
       print(f"Warning: Not all open positions match exchange records for {position_market_m1} and {position_market_m2}")
       continue
 

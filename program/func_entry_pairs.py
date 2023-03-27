@@ -54,6 +54,16 @@ def open_positions(client):
       spread = series_1 - (hedge_ratio * series_2)
       z_score = calculate_zscore(spread).values.tolist()[-1]
 
+      ###
+      # THIS IS WHERE WE WANT TO SIMULATE TRADES - AMIR
+      ###
+      #if base_market == "TRX-USD" and quote_market == "MATIC-USD":
+      #  print(f"establishing debug trade for {base_market} and {quote_market}")
+      #  # negative to buy base market 1
+      #  z_score = -1.6
+      #else:
+      #  z_score = 0.5
+
       # Establish if potential trade
       if abs(z_score) >= ZSCORE_THRESH:
 
@@ -90,8 +100,8 @@ def open_positions(client):
 
           # Format sizes
           # Amir - fixed this for step sizes > 1
-          base_size = format_number(base_quantity, base_step_size) if float(base_step_size) <= 1 else round(base_quantity, -(int(int(base_step_size)/10)))
-          quote_size = format_number(quote_quantity, quote_step_size) if float(quote_step_size) <= 1 else round(quote_quantity, -(int(int(quote_step_size)/10)))
+          base_size = format_number(base_quantity, base_step_size) if float(base_step_size) <= 1 else str(int(round(base_quantity, -(int(int(base_step_size)/10)))))
+          quote_size = format_number(quote_quantity, quote_step_size) if float(quote_step_size) <= 1 else str(int(round(quote_quantity, -(int(int(quote_step_size)/10)))))
 
           # Ensure size
           base_min_order_size = markets["markets"][base_market]["minOrderSize"]

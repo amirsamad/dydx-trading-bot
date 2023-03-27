@@ -150,6 +150,7 @@ class BotAgent:
 
     # Place Quote Order
     try:
+      order_status_m2 = "attempting"
       quote_order = place_market_order(
         self.client,
         market=self.market_2,
@@ -162,20 +163,26 @@ class BotAgent:
       # Store the order id
       self.order_dict["order_id_m2"] = quote_order["order"]["id"]
       self.order_dict["order_time_m2"] = datetime.now().isoformat()
+
+
+      # Ensure order is live before processing
+      order_status_m2 = self.check_order_status_by_id(self.order_dict["order_id_m2"])
+
+      if order_status_m2 == "live":
+        self.order_dict["pair_status"] = "LIVE"
+        return self.order_dict
+
+    # Guard: Aborder if order failed
+      else:
+        raise Exception("Did not get live status from second trade")
+        #self.order_dict["pair_status"] = "ERROR"
+        #self.order_dict["comments"] = f"{self.market_1} failed to fill"
+
     except Exception as e:
       print(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
       send_message(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
       self.order_dict["pair_status"] = "ERROR"
       self.order_dict["comments"] = f"Market 2 {self.market_2}: , {e}"
-      return self.order_dict
-
-    # Ensure order is live before processing
-    order_status_m2 = self.check_order_status_by_id(self.order_dict["order_id_m2"])
-
-    # Guard: Aborder if order failed
-    if order_status_m2 != "live":
-      self.order_dict["pair_status"] = "ERROR"
-      self.order_dict["comments"] = f"{self.market_1} failed to fill"
 
       # Close order 1:
       try:
@@ -202,9 +209,12 @@ class BotAgent:
 
           # ABORT
           exit(1)
+        else:
+          self.order_dict["pair_status"] = "ERROR"
+          return self.order_dict
       except Exception as e:
-        print(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
-        send_message(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
+        print(f"Error reversing first order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
+        send_message(f"Error placing second order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
         self.order_dict["pair_status"] = "ERROR"
         self.order_dict["comments"] = f"Close Market 1 {self.market_1}: , {e}"
         print("ABORT PROGRAM")
