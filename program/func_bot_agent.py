@@ -5,6 +5,8 @@ import time
 
 from pprint import pprint
 
+from func_utils import call_client
+
 
 # Class: Agent for managing opening and checking trades
 class BotAgent:
@@ -82,7 +84,7 @@ class BotAgent:
       return "failed"
 
     # Guard: If order not filled wait until order expiration
-    if order_status != "FAILED":
+    if order_status != "FILLED":
       time.sleep(15)
       order_status = check_order_status(self.client, order_id)
 
@@ -94,7 +96,7 @@ class BotAgent:
 
       # Guard: If not filled, cancel order
       if order_status != "FILLED":
-        self.client.private.cancel_order(order_id=order_id)
+        call_client(self.client.private.cancel_order, order_id=order_id)
         self.order_dict["pair_status"] = "ERROR"
         print(f"{self.market_1} vs {self.market_2} - Order error...")
         return "error"

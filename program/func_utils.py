@@ -1,5 +1,29 @@
 from datetime import datetime, timedelta
+from time import sleep
+from func_messaging import send_message
 
+def call_client(clientFunc, *arg, **kwargs):
+  #close connection to test
+  #client
+  for i in range(0,2):
+    try:
+      retcode = clientFunc(*arg, **kwargs)
+
+    except ConnectionError:
+      print(f"Connection Error calling function {clientFunc}")
+      sleep(0.5)
+      continue
+    except Exception as e:
+      print(f"Error calling function {clientFunc}, got exception of type {type(e)} of: {e}.. retrying")
+      sleep(0.5)
+      continue
+    else:
+      return retcode
+    
+  # Couldn't connect after all retries
+  print("Catastrophic failure: Couldn't connect after retries")
+  send_message("Catastrophic failure: Couldn't connect after retries")
+  exit(1)
 
 # Format number
 def format_number(curr_num, match_num):

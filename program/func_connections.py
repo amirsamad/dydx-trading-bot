@@ -1,3 +1,4 @@
+from time import sleep
 from decouple import config
 from dydx3 import Client
 from web3 import Web3
@@ -10,6 +11,8 @@ from constants import (
   STARK_PRIVATE_KEY,
   HTTP_PROVIDER,
 )
+from func_messaging import send_message
+from func_utils import call_client
 
 # Connect to DYDX
 def connect_dydx():
@@ -29,7 +32,8 @@ def connect_dydx():
   )
 
   # Confirm client
-  account = client.private.get_account()
+  account = call_client(client.private.get_account)
+
   account_id = account.data["account"]["id"]
   quote_balance = account.data["account"]["quoteBalance"]
   print("Connection Successful")
@@ -38,3 +42,6 @@ def connect_dydx():
 
   # Return Client
   return client
+
+
+

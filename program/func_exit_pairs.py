@@ -1,12 +1,16 @@
 from constants import CLOSE_AT_ZSCORE_CROSS
 from func_utils import format_number
+from func_utils import call_client
 from func_public import get_candles_recent
 from func_cointegration import calculate_zscore
 from func_private import place_market_order
+from func_connections import connect_dydx
 import json
 import time
 
 from pprint import pprint
+
+
 
 # Manage trade exits
 def manage_trade_exits(client):
@@ -31,7 +35,8 @@ def manage_trade_exits(client):
     return "complete"
 
   # Get all open positions per trading platform
-  exchange_pos = client.private.get_positions(status="OPEN")
+  #exchange_pos = client.private.get_positions(status="OPEN")
+  exchange_pos = call_client(client.private.get_positions, status="OPEN")
   all_exc_pos = exchange_pos.data["positions"]
   markets_live = []
   for p in all_exc_pos:
@@ -61,7 +66,8 @@ def manage_trade_exits(client):
     time.sleep(0.5)
 
     # Get order info m1 per exchange
-    order_m1 = client.private.get_order_by_id(position["order_id_m1"])
+    #order_m1 = client.private.get_order_by_id(position["order_id_m1"])
+    order_m1 = call_client(client.private.get_order_by_id, position["order_id_m1"])
     order_market_m1 = order_m1.data["order"]["market"]
     order_size_m1 = order_m1.data["order"]["size"]
     order_side_m1 = order_m1.data["order"]["side"]
@@ -70,14 +76,15 @@ def manage_trade_exits(client):
     time.sleep(0.5)
 
     # Get order info m2 per exchange
-    order_m2 = client.private.get_order_by_id(position["order_id_m2"])
+    #order_m2 = client.private.get_order_by_id(position["order_id_m2"])
+    order_m2 = call_client(client.private.get_order_by_id, position["order_id_m2"])
     order_market_m2 = order_m2.data["order"]["market"]
     order_size_m2 = order_m2.data["order"]["size"]
     order_side_m2 = order_m2.data["order"]["side"]
 
     # Perform matching checks
-    check_m1 = position_market_m1 == order_market_m1 and position_size_m1 == order_size_m1 and position_side_m1 == order_side_m1
-    check_m2 = position_market_m2 == order_market_m2 and position_size_m2 == order_size_m2 and position_side_m2 == order_side_m2
+    check_m1 = position_market_m1 == order_market_m1 and float(position_size_m1) == float(order_size_m1) and position_side_m1 == order_side_m1
+    check_m2 = position_market_m2 == order_market_m2 and float(position_size_m2) == float(order_size_m2) and position_side_m2 == order_side_m2
     check_live = position_market_m1 in markets_live and position_market_m2 in markets_live
 
     # Guard: If not all match exit with error
@@ -102,7 +109,7 @@ def manage_trade_exits(client):
     time.sleep(0.2)
 
     # Get markets for reference of tick size
-    markets = client.public.get_markets().data
+    markets = call_client(client.public.get_markets).data
 
     # Protect API
     time.sleep(0.2)

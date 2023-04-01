@@ -15,13 +15,7 @@ if __name__ == "__main__":
   #send_message("Bot launch successful")
 
   # Connect to client
-  try:
-    print("Connecting to Client...")
-    client = connect_dydx()
-  except Exception as e:
-    print("Error connecting to client: ", e)
-    send_message(f"Failed to connect to client {e}")
-    exit(1)
+  client = connect_dydx()
 
   # Abort all open positions
   if ABORT_ALL_POSITIONS:
@@ -79,3 +73,12 @@ if __name__ == "__main__":
         print("Error trading pairs: ", e)
         send_message(f"Error opening trades {e}")
         exit(1)
+        # most likely connection has dropped
+        try:
+          print("Reconnecting to Client...")
+          client = connect_dydx()
+        except Exception as e:
+          print("Error reconnecting to client: ", e)
+          send_message(f"Failed to reconnect to client {e}")
+          exit(1)
+

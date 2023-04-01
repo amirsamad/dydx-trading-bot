@@ -6,6 +6,8 @@ import time
 
 from pprint import pprint
 
+from func_utils import call_client
+
 # Get relevant time periods for ISO from and to
 ISO_TIMES = get_ISO_times()
 
@@ -20,7 +22,7 @@ def get_candles_recent(client, market):
   time.sleep(0.2)
 
   # Get data
-  candles = client.public.get_candles(
+  candles = call_client(client.public.get_candles,
     market= market,
     resolution=RESOLUTION,
     limit=100
@@ -54,7 +56,7 @@ def get_candles_historical(client, market):
     time.sleep(0.2)
 
     # Get data
-    candles = client.public.get_candles(
+    candles = call_client(client.public.get_candles,
       market=market,
       resolution=RESOLUTION,
       from_iso=from_iso,
@@ -76,7 +78,7 @@ def construct_market_prices(client):
 
   # Declare variables
   tradeable_markets = []
-  markets = client.public.get_markets()
+  markets = call_client(client.public.get_markets)
 
   # Find tradeable pairs
   for market in markets.data["markets"].keys():
