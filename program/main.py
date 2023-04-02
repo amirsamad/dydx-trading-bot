@@ -7,6 +7,7 @@ from func_cointegration import store_cointegration_results
 from func_entry_pairs import open_positions
 from func_exit_pairs import manage_trade_exits
 from func_messaging import send_message
+from func_utils import get_num_open_pairs
 
 
 # MAIN FUNCTION
@@ -55,7 +56,7 @@ if __name__ == "__main__":
   # Run as always on
   while True:
 
-    print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] looking for closings and openings...", flush=True)
+    print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] looking for closings and openings... ({get_num_open_pairs()} pairs open)", flush=True)
     # Place trades for opening positions
     if MANAGE_EXITS:
       try:

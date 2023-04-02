@@ -1,9 +1,22 @@
 from datetime import datetime, timedelta
 import decimal
+import json
 from time import sleep
 
 import requests
 from func_messaging import send_message
+
+def get_num_open_pairs():
+
+  try:
+    open_positions_file = open("bot_agents.json")
+    open_positions_dict = json.load(open_positions_file)
+    num_pairs = len(open_positions_dict)
+    open_positions_file.close()
+    return num_pairs
+  except Exception as e:
+    print(f"got exception of type {type(e)} of: {e}", flush=True)
+
 
 def get_average_price(fill, market, order_id, order_size):
 
