@@ -238,9 +238,9 @@ def manage_trade_exits(client):
         actual_price_m2 = get_average_price(fill_2, position_market_m2, order_id_m2, position_size_m2)
 
         try:
-          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_market_m1}/{position_market_m2} --- , current Z score: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), half life: {round(float(half_life), 1)}, hedge ratio: {round(float(hedge_ratio), 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})")
-          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})")
-          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})")
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_market_m1}/{position_market_m2} --- , current Z score: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), half life: {round(float(half_life), 1)}, hedge ratio: {round(float(hedge_ratio), 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})", flush=True)
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})", flush=True)
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})", flush=True)
         except Exception as e:
           print(f"got exception of type {type(e)} of: {e}")
 

@@ -29,11 +29,11 @@ def call_client(clientFunc, *arg, **kwargs):
       retcode = clientFunc(*arg, **kwargs)
 
     except requests.exceptions.ConnectionError as e:
-      print(f"Connection Error calling function {clientFunc} of: {e}")
+      print(f"Connection Error calling function {clientFunc} of: {e}", flush=True)
       sleep(0.5)
       continue
     except Exception as e:
-      print(f"Error calling function {clientFunc}, got exception of type {type(e)} of: {e}.. retrying")
+      print(f"Error calling function {clientFunc}, got exception of type {type(e)} of: {e}.. retrying", flush=True)
       sleep(0.5)
       continue
     else:

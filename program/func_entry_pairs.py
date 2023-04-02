@@ -183,9 +183,9 @@ def open_positions(client):
               fill_2 = call_client(client.private.get_fills, market=market_2)
               actual_price_m2 = get_average_price(fill_2, market_2, order_id_m2, order_m2_size)
 
-              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {market_1}/{market_2}, Z score: {round(z_score, 2)}, half life: {round(half_life, 1)}, hedge ratio: {round(hedge_ratio, 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})")
-              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m1_side} {order_m1_size} units of {market_1} at {actual_price_m1} ({base_price}, {accept_base_price}) ")
-              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m2_side} {order_m2_size} units of {market_2} at {actual_price_m2} ({quote_price}, {accept_quote_price}) ")
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {market_1}/{market_2}, Z score: {round(z_score, 2)}, half life: {round(half_life, 1)}, hedge ratio: {round(hedge_ratio, 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})", flush=True)
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m1_side} {order_m1_size} units of {market_1} at {actual_price_m1} ({base_price}, {accept_base_price}) ", flush=True)
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m2_side} {order_m2_size} units of {market_2} at {actual_price_m2} ({quote_price}, {accept_quote_price}) ", flush=True)
 
               # Append to list of bot agents
               bot_agents.append(bot_open_dict)
