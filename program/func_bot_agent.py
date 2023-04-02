@@ -79,7 +79,7 @@ class BotAgent:
 
     # Guard: If order cancelled move onto next Pair
     if order_status == "CANCELED":
-      print(f"{self.market_1} vs {self.market_2} - Order cancelled...")
+      print(f"{self.market_1} vs {self.market_2} - Order cancelled...", flush=True)
       self.order_dict["pair_status"] = "FAILED"
       return "failed"
 
@@ -90,7 +90,7 @@ class BotAgent:
 
       # Guard: If order cancelled move onto next Pair
       if order_status == "CANCELED":
-        print(f"{self.market_1} vs {self.market_2} - Order cancelled...")
+        print(f"{self.market_1} vs {self.market_2} - Order cancelled...", flush=True)
         self.order_dict["pair_status"] = "FAILED"
         return "failed"
 
@@ -98,7 +98,7 @@ class BotAgent:
       if order_status != "FILLED":
         call_client(self.client.private.cancel_order, order_id=order_id)
         self.order_dict["pair_status"] = "ERROR"
-        print(f"{self.market_1} vs {self.market_2} - Order error...")
+        print(f"{self.market_1} vs {self.market_2} - Order error...", flush=True)
         return "error"
 
     # Return live
@@ -128,8 +128,8 @@ class BotAgent:
       self.order_dict["order_id_m1"] = base_order["order"]["id"]
       self.order_dict["order_time_m1"] = datetime.now().isoformat()
     except Exception as e:
-      print(f"Error placing first order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
-      send_message(f"Error placing first order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
+      print(f"Error placing first order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}", flush=True)
+      #send_message(f"Error placing first order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
       self.order_dict["pair_status"] = "ERROR"
       self.order_dict["comments"] = f"Market 1 {self.market_1}: , {e}"
       return self.order_dict
@@ -181,14 +181,14 @@ class BotAgent:
         #self.order_dict["comments"] = f"{self.market_1} failed to fill"
 
     except Exception as e:
-      print(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
-      send_message(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
+      print(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}", flush=True)
+      #send_message(f"Error placing second order: Market: {self.market_2}, Side: {self.quote_side}, Size: {self.quote_size}, price: {self.quote_price}, Error: {e}")
       self.order_dict["pair_status"] = "ERROR"
       self.order_dict["comments"] = f"Market 2 {self.market_2}: , {e}"
 
       # Close order 1:
       try:
-        print(f"Could not place second order, return status: {order_status_m2}, attempting to close first order")
+        print(f"Could not place second order, return status: {order_status_m2}, attempting to close first order", flush=True)
         close_order = place_market_order(
           self.client,
           market=self.market_1,
@@ -202,9 +202,9 @@ class BotAgent:
         time.sleep(2)
         order_status_close_order = check_order_status(self.client, close_order["order"]["id"])
         if order_status_close_order != "FILLED":
-          print("ABORT PROGRAM")
-          print("Unexpected Error")
-          print(order_status_close_order)
+          print("ABORT PROGRAM", flush=True)
+          print("Unexpected Error", flush=True)
+          print(order_status_close_order, flush=True)
 
           # Send Message
           send_message("Failed to execute. Code red. Error code: 100")
@@ -215,13 +215,13 @@ class BotAgent:
           self.order_dict["pair_status"] = "ERROR"
           return self.order_dict
       except Exception as e:
-        print(f"Error reversing first order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
-        send_message(f"Error placing second order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
+        print(f"Error reversing first order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}", flush=True)
+        #send_message(f"Error placing second order: Market: {self.market_1}, Side: {self.base_side}, Size: {self.base_size}, price: {self.base_price}, Error: {e}")
         self.order_dict["pair_status"] = "ERROR"
         self.order_dict["comments"] = f"Close Market 1 {self.market_1}: , {e}"
-        print("ABORT PROGRAM")
-        print("Unexpected Error")
-        print(order_status_close_order)
+        print("ABORT PROGRAM", flush=True)
+        print("Unexpected Error", flush=True)
+        print(order_status_close_order, flush=True)
 
         # Send Message
         send_message("Failed to execute. Code red. Error code: 101")

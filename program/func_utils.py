@@ -14,7 +14,7 @@ def get_average_price(fill, market, order_id, order_size):
         orig_price = fill.data["fills"][i]["price"]
         price += float(fill.data["fills"][i]["price"]) * float(fill.data["fills"][i]["size"]) / float(order_size)
       except Exception as e:
-        print(f"got exception of type {type(e)} of: {e}")
+        print(f"got exception of type {type(e)} of: {e}", flush=True)
         return 0
   d = decimal.Decimal(orig_price)
   d = d.as_tuple().exponent
@@ -24,23 +24,23 @@ def get_average_price(fill, market, order_id, order_size):
 def call_client(clientFunc, *arg, **kwargs):
   #close connection to test
   #client
-  for i in range(0,2):
+  for i in range(0,3):
     try:
       retcode = clientFunc(*arg, **kwargs)
 
     except requests.exceptions.ConnectionError as e:
       print(f"Connection Error calling function {clientFunc} of: {e}", flush=True)
-      sleep(0.5)
+      sleep(1)
       continue
     except Exception as e:
       print(f"Error calling function {clientFunc}, got exception of type {type(e)} of: {e}.. retrying", flush=True)
-      sleep(0.5)
+      sleep(1)
       continue
     else:
       return retcode
     
   # Couldn't connect after all retries
-  print("Catastrophic failure: Couldn't connect after retries")
+  print("Catastrophic failure: Couldn't connect after retries", flush=True)
   send_message("Catastrophic failure: Couldn't connect after retries")
   exit(1)
 

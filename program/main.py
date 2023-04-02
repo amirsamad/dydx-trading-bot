@@ -13,7 +13,7 @@ from func_messaging import send_message
 if __name__ == "__main__":
 
   # Message on start
-  #send_message("Bot launch successful")
+  send_message("Bot launch successful")
 
   # Connect to client
   client = connect_dydx()
@@ -21,11 +21,11 @@ if __name__ == "__main__":
   # Abort all open positions
   if ABORT_ALL_POSITIONS:
     try:
-      print("Closing all positions...")
+      print("Closing all positions...", flush=True)
       close_orders = abort_all_positions(client)
     except Exception as e:
-      print("Error closing all positions: ", e)
-      send_message(f"Error closing all positions {e}")
+      print(f"Error closing all positions: {e}", flush=True)
+      #send_message(f"Error closing all positions {e}")
       exit(1)
 
   # Find Cointegrated Pairs
@@ -33,23 +33,23 @@ if __name__ == "__main__":
 
     # Construct Market Prices
     try:
-      print("Fetching market prices, please allow 3 mins...")
+      print("Fetching market prices, please allow 3 mins...", flush=True)
       df_market_prices = construct_market_prices(client)
     except Exception as e:
       print("Error constructing market prices: ", e)
-      send_message(f"Error constructing market prices {e}")
+      #send_message(f"Error constructing market prices {e}")
       exit(1)
 
     # Store Cointegrated Pairs
     try:
-      print("Storing cointegrated pairs...")
+      print("Storing cointegrated pairs...", flush=True)
       stores_result = store_cointegration_results(df_market_prices)
       if stores_result != "saved":
-        print("Error saving cointegrated pairs")
+        print("Error saving cointegrated pairs", flush=True)
         exit(1)
     except Exception as e:
       print("Error saving cointegrated pairs: ", e)
-      send_message(f"Error saving cointegrated pairs {e}")
+      #send_message(f"Error saving cointegrated pairs {e}")
       exit(1)
 
   # Run as always on
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         manage_trade_exits(client)
       except Exception as e:
         print("Error managing exiting positions: ", e)
-        send_message(f"Error managing exiting positions {e}")
+        #send_message(f"Error managing exiting positions {e}")
         exit(1)
 
     # Place trades for opening positions
@@ -72,15 +72,8 @@ if __name__ == "__main__":
         #print("Finding trading opportunities...")
         open_positions(client)
       except Exception as e:
-        print("Error trading pairs: ", e)
-        send_message(f"Error opening trades {e}")
+        print(f"Error opening trades, got exception of type {type(e)} of: {e}")
+        send_message(f"Error opening trades, got exception of type {type(e)} of: {e}")
         exit(1)
-        # most likely connection has dropped
-        try:
-          print("Reconnecting to Client...")
-          client = connect_dydx()
-        except Exception as e:
-          print("Error reconnecting to client: ", e)
-          send_message(f"Failed to reconnect to client {e}")
-          exit(1)
+
 

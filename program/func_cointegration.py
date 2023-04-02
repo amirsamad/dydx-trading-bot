@@ -82,7 +82,7 @@ def store_cointegration_results(df_market_prices):
   del df_criteria_met
 
   # Return result
-  print("Cointegrated pairs successfully saved")
+  print("Cointegrated pairs successfully saved", flush=True)
   return "saved"
 
 
