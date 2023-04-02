@@ -1,3 +1,4 @@
+import datetime
 from constants import CLOSE_AT_ZSCORE_CROSS
 from func_utils import format_number
 from func_utils import call_client
@@ -9,6 +10,8 @@ import json
 import time
 
 from pprint import pprint
+
+from func_utils import get_average_price
 
 
 
@@ -71,6 +74,7 @@ def manage_trade_exits(client):
     order_market_m1 = order_m1.data["order"]["market"]
     order_size_m1 = order_m1.data["order"]["size"]
     order_side_m1 = order_m1.data["order"]["side"]
+    order_price_m1 = order_m1.data["order"]["price"]
 
     # Protect API
     time.sleep(0.5)
@@ -81,6 +85,10 @@ def manage_trade_exits(client):
     order_market_m2 = order_m2.data["order"]["market"]
     order_size_m2 = order_m2.data["order"]["size"]
     order_side_m2 = order_m2.data["order"]["side"]
+    order_price_m2 = order_m2.data["order"]["price"]
+
+    #if position_market_m1 == "BCH-USD" and position_market_m2 == "AAVE-USD":
+    #  is_close = True
 
     # Perform matching checks
     check_m1 = position_market_m1 == order_market_m1 and float(position_size_m1) == float(order_size_m1) and position_side_m1 == order_side_m1
@@ -117,7 +125,8 @@ def manage_trade_exits(client):
     # Trigger close based on Z-Score
     if CLOSE_AT_ZSCORE_CROSS:
 
-      # Initialize z_scores
+      # Initialize z_scores\
+      half_life = position["half_life"]
       hedge_ratio = position["hedge_ratio"]
       z_score_traded = position["z_score"]
       if len(series_1) > 0 and len(series_1) == len(series_2):
@@ -126,13 +135,14 @@ def manage_trade_exits(client):
 
       # Determine trigger
       z_score_level_check = abs(z_score_current) >= abs(z_score_traded)
-      z_score_cross_check = (z_score_current < 0 and z_score_traded > 0) or (z_score_current > 0 and z_score_traded < 0)
+      if z_score_level_check:
+        z_score_cross_check = (z_score_current < 0 and z_score_traded > 0) or (z_score_current > 0 and z_score_traded < 0)
 
-      # Close trade
-      if z_score_level_check and z_score_cross_check:
+        # Close trade
+        if z_score_cross_check:
 
-        # Initiate close trigger
-        is_close = True
+          # Initiate close trigger
+          is_close = True
 
     ###
     # Add any other close logic you want here
@@ -141,6 +151,8 @@ def manage_trade_exits(client):
 
     # Close positions if triggered
     if is_close:
+      account = call_client(client.private.get_account)
+      free_collateral = float(account.data["account"]["freeCollateral"])
 
       # Determine side - m1
       side_m1 = "SELL"
@@ -166,8 +178,8 @@ def manage_trade_exits(client):
       try:
 
         # Close position for market 1
-        print(">>> Closing market 1 <<<")
-        print(f"Closing position for {position_market_m1}")
+        #print(">>> Closing market 1 <<<")
+        #print(f"Closing position for {position_market_m1}")
 
         close_order_m1 = place_market_order(
           client,
@@ -178,15 +190,16 @@ def manage_trade_exits(client):
           reduce_only=True,
         )
 
-        print(close_order_m1["order"]["id"])
-        print(">>> Closing <<<")
+        order_id_m1 = close_order_m1["order"]["id"]
+        #print(close_order_m1["order"]["id"])
+        #print(">>> Closing <<<")
 
         # Protect API
         time.sleep(1)
 
         # Close position for market 2
-        print(">>> Closing market 2 <<<")
-        print(f"Closing position for {position_market_m2}")
+        #print(">>> Closing market 2 <<<")
+        #print(f"Closing position for {position_market_m2}")
 
         close_order_m2 = place_market_order(
           client,
@@ -197,18 +210,46 @@ def manage_trade_exits(client):
           reduce_only=True,
         )
 
-        print(close_order_m2["order"]["id"])
-        print(">>> Closing <<<")
+        order_id_m2 = close_order_m2["order"]["id"]
+        #print(close_order_m2["order"]["id"])
+        #print(">>> Closing <<<")
 
       except Exception as e:
         print(f"Exit failed for {position_market_m1} with {position_market_m2}")
         save_output.append(position)
+      else:
+        # Successfully closed positions
+        # Check new account balance
+        account = call_client(client.private.get_account)
+        free_collateral_after = float(account.data["account"]["freeCollateral"])
+
+        # Get actual price of trade vs. requested price
+        
+        fill_1 = call_client(client.private.get_fills, market=position_market_m1)
+        actual_price_m1 = get_average_price(fill_1, position_market_m1, order_id_m1, position_size_m1)
+        
+
+        #market_2 = bot_open_dict["market_2"]
+        #order_id_m2 = bot_open_dict["order_id_m2"]
+        #order_m2_size = bot_open_dict["order_m2_size"]
+        #order_m2_side = bot_open_dict["order_m2_side"]
+        #order_time_m2 = bot_open_dict["order_time_m2"]
+        fill_2 = call_client(client.private.get_fills, market=position_market_m2)
+        actual_price_m2 = get_average_price(fill_2, position_market_m2, order_id_m2, position_size_m2)
+
+        try:
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_market_m1}/{position_market_m2} --- , current Z score: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), half life: {round(float(half_life), 1)}, hedge ratio: {round(float(hedge_ratio), 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})")
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})")
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})")
+        except Exception as e:
+          print(f"got exception of type {type(e)} of: {e}")
+
 
     # Keep record if items and save
     else:
       save_output.append(position)
 
   # Save remaining items
-  print(f"{len(save_output)} Items remaining. Saving file...")
+  #print(f"{len(save_output)} Items remaining. Saving file...")
   with open("bot_agents.json", "w") as f:
     json.dump(save_output, f)

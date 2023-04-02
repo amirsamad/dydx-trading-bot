@@ -1,3 +1,4 @@
+import datetime
 from constants import ABORT_ALL_POSITIONS, FIND_COINTEGRATED, PLACE_TRADES, MANAGE_EXITS
 from func_connections import connect_dydx
 from func_private import abort_all_positions
@@ -54,10 +55,11 @@ if __name__ == "__main__":
   # Run as always on
   while True:
 
+    print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] looking for closings and openings...", flush=True)
     # Place trades for opening positions
     if MANAGE_EXITS:
       try:
-        print("Managing exits...")
+        #print("Managing exits...")
         manage_trade_exits(client)
       except Exception as e:
         print("Error managing exiting positions: ", e)
@@ -67,7 +69,7 @@ if __name__ == "__main__":
     # Place trades for opening positions
     if PLACE_TRADES:
       try:
-        print("Finding trading opportunities...")
+        #print("Finding trading opportunities...")
         open_positions(client)
       except Exception as e:
         print("Error trading pairs: ", e)

@@ -1,6 +1,25 @@
 from datetime import datetime, timedelta
+import decimal
 from time import sleep
+
+import requests
 from func_messaging import send_message
+
+def get_average_price(fill, market, order_id, order_size):
+
+  price = 0.0
+  for i in range(len(fill.data["fills"])):
+    if fill.data["fills"][i]["orderId"] == order_id:
+      try:
+        orig_price = fill.data["fills"][i]["price"]
+        price += float(fill.data["fills"][i]["price"]) * float(fill.data["fills"][i]["size"]) / float(order_size)
+      except Exception as e:
+        print(f"got exception of type {type(e)} of: {e}")
+        return 0
+  d = decimal.Decimal(orig_price)
+  d = d.as_tuple().exponent
+  price = round(price, -d)
+  return price
 
 def call_client(clientFunc, *arg, **kwargs):
   #close connection to test
@@ -9,8 +28,8 @@ def call_client(clientFunc, *arg, **kwargs):
     try:
       retcode = clientFunc(*arg, **kwargs)
 
-    except ConnectionError:
-      print(f"Connection Error calling function {clientFunc}")
+    except requests.exceptions.ConnectionError as e:
+      print(f"Connection Error calling function {clientFunc} of: {e}")
       sleep(0.5)
       continue
     except Exception as e:

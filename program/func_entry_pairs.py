@@ -1,3 +1,4 @@
+import datetime
 from constants import ZSCORE_THRESH, USD_PER_TRADE, USD_MIN_COLLATERAL
 from func_utils import format_number
 from func_public import get_candles_recent
@@ -10,6 +11,7 @@ import json
 from pprint import pprint
 
 from func_utils import call_client
+from func_utils import get_average_price
 
 
 # Open positions
@@ -119,7 +121,7 @@ def open_positions(client):
             # Check account balance
             account = call_client(client.private.get_account)
             free_collateral = float(account.data["account"]["freeCollateral"])
-            print(f"Balance: {free_collateral} and minimum at {USD_MIN_COLLATERAL}")
+            #print(f"Balance: {free_collateral} and minimum at {USD_MIN_COLLATERAL}")
 
             # Guard: Ensure collateral
             if free_collateral < USD_MIN_COLLATERAL:
@@ -154,16 +156,47 @@ def open_positions(client):
             # Handle success in opening trades
             if bot_open_dict["pair_status"] == "LIVE":
 
+              # Check new account balance
+              account = call_client(client.private.get_account)
+              free_collateral_after = float(account.data["account"]["freeCollateral"])
+
+              # Get actual price of trade vs. requested price
+              
+              hedge_ratio = bot_open_dict["hedge_ratio"]
+              z_score = bot_open_dict["z_score"]
+              half_life = bot_open_dict["half_life"]
+
+              market_1 = bot_open_dict["market_1"]
+              order_id_m1 = bot_open_dict["order_id_m1"]
+              order_m1_size = bot_open_dict["order_m1_size"]
+              order_m1_side = bot_open_dict["order_m1_side"]
+              order_time_m1 = bot_open_dict["order_time_m1"]
+              fill_1 = call_client(client.private.get_fills, market=market_1)
+              actual_price_m1 = get_average_price(fill_1, market_1, order_id_m1, order_m1_size)
+              
+
+              market_2 = bot_open_dict["market_2"]
+              order_id_m2 = bot_open_dict["order_id_m2"]
+              order_m2_size = bot_open_dict["order_m2_size"]
+              order_m2_side = bot_open_dict["order_m2_side"]
+              order_time_m2 = bot_open_dict["order_time_m2"]
+              fill_2 = call_client(client.private.get_fills, market=market_2)
+              actual_price_m2 = get_average_price(fill_2, market_2, order_id_m2, order_m2_size)
+
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {market_1}/{market_2}, Z score: {round(z_score, 2)}, half life: {round(half_life, 1)}, hedge ratio: {round(hedge_ratio, 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})")
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m1_side} {order_m1_size} units of {market_1} at {actual_price_m1} ({base_price}, {accept_base_price}) ")
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m2_side} {order_m2_size} units of {market_2} at {actual_price_m2} ({quote_price}, {accept_quote_price}) ")
+
               # Append to list of bot agents
               bot_agents.append(bot_open_dict)
               del(bot_open_dict)
 
               # Confirm live status in print
-              print("Trade status: Live")
-              print("---")
+              #print("Trade status: Live")
+              #print("---")
 
   # Save agents
-  print(f"Success: Manage open trades checked")
+  #print(f"Success: Manage open trades checked")
   if len(bot_agents) > 0:
     with open("bot_agents.json", "w") as f:
       json.dump(bot_agents, f)

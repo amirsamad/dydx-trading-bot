@@ -108,10 +108,10 @@ class BotAgent:
   def open_trades(self):
 
     # Print status
-    print("---")
-    print(f"{self.market_1}: Placing first order...")
-    print(f"Side: {self.base_side}, Size: {self.base_size}, Price: {self.base_price}")
-    print("---")
+    #print("---")
+    #print(f"{self.market_1}: Placing first order...")
+    #print(f"Side: {self.base_side}, Size: {self.base_size}, Price: {self.base_price}")
+    #print("---")
 
     # Place Base Order
     try:
@@ -145,10 +145,10 @@ class BotAgent:
       return self.order_dict
 
     # Print status - opening second order
-    print("---")
-    print(f"{self.market_2}: Placing second order...")
-    print(f"Side: {self.quote_side}, Size: {self.quote_size}, Price: {self.quote_price}")
-    print("---")
+    #print("---")
+    #print(f"{self.market_2}: Placing second order...")
+    #print(f"Side: {self.quote_side}, Size: {self.quote_size}, Price: {self.quote_price}")
+    #print("---")
 
     # Place Quote Order
     try:
