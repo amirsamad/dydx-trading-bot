@@ -3,6 +3,7 @@ from constants import CLOSE_AT_ZSCORE_CROSS
 from func_utils import format_number
 from func_utils import call_client
 from func_public import get_candles_recent
+from func_public import get_candles_latest
 from func_cointegration import calculate_zscore
 from func_private import place_market_order
 from func_connections import connect_dydx
@@ -112,10 +113,12 @@ def manage_trade_exits(client):
       continue
 
     # Get prices
-    series_1 = get_candles_recent(client, position_market_m1)
-    time.sleep(0.2)
-    series_2 = get_candles_recent(client, position_market_m2)
-    time.sleep(0.2)
+    price_1 = get_candles_latest(client, position_market_m1)
+    price_2 = get_candles_latest(client, position_market_m2)
+    #series_1 = get_candles_recent(client, position_market_m1)
+    #time.sleep(0.2)
+    #series_2 = get_candles_recent(client, position_market_m2)
+    #time.sleep(0.2)
 
     # Get markets for reference of tick size
     markets = call_client(client.public.get_markets).data
@@ -130,9 +133,14 @@ def manage_trade_exits(client):
       half_life = position["half_life"]
       hedge_ratio = position["hedge_ratio"]
       z_score_traded = position["z_score"]
-      if len(series_1) > 0 and len(series_1) == len(series_2):
-        spread = series_1 - (hedge_ratio * series_2)
-        z_score_current = calculate_zscore(spread).values.tolist()[-1]
+      spread_mean = position["spread_mean"]
+      spread_std = position["spread_std"]
+      #if len(series_1) > 0 and len(series_1) == len(series_2):
+        #spread = series_1 - (hedge_ratio * series_2)
+      if True:
+        spread = price_1 - (hedge_ratio * price_2)
+        z_score_current = (spread - spread_mean) / spread_std
+        #z_score_current = calculate_zscore(spread).values.tolist()[-1]
 
       # Determine trigger
       z_score_level_check = abs(z_score_current) >= abs(z_score_traded)
@@ -239,12 +247,12 @@ def manage_trade_exits(client):
         actual_price_m2 = get_average_price(fill_2, position_market_m2, order_id_m2, position_size_m2)
 
         try:
-          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_market_m1}/{position_market_m2} --- , current Z score: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), half life: {round(float(half_life), 1)}, hedge ratio: {round(float(hedge_ratio), 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})", flush=True)
-          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})", flush=True)
-          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})", flush=True)
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE {position_market_m1}/{position_market_m2}, {position_side_m2} {position_market_m1} at {actual_price_m1} ({order_price_m1}), {position_side_m1} {position_market_m2} at {actual_price_m2} ({order_price_m2}) New Zscore: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), hlife: {round(float(half_life), 1)}, hratio: {round(float(hedge_ratio), 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral_after,2) - round(free_collateral,2)}", flush=True)
+          #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})", flush=True)
+          #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})", flush=True)
 
-          send_message(f"CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})")
-          send_message(f"CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})")
+          #send_message(f"CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})")
+          #send_message(f"CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})")
         except Exception as e:
           print(f"got exception of type {type(e)} of: {e}", flush=True)
 

@@ -11,6 +11,14 @@ from func_utils import call_client
 # Get relevant time periods for ISO from and to
 ISO_TIMES = get_ISO_times()
 
+def get_candles_latest(client, market):
+  candles = call_client(client.public.get_candles,
+    market=market,
+    resolution="5MINS",
+    limit=1
+  )
+  latest_price = candles.data["candles"][0]["close"]
+  return latest_price
 
 # Get Candles recent
 def get_candles_recent(client, market):

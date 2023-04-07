@@ -31,6 +31,8 @@ class BotAgent:
     z_score,
     half_life,
     hedge_ratio,
+    spread_mean,
+    spread_std,
   ):
 
     # Initialize class variables
@@ -47,6 +49,8 @@ class BotAgent:
     self.z_score = z_score
     self.half_life = half_life
     self.hedge_ratio = hedge_ratio
+    self.spread_mean = spread_mean
+    self.spread_std = spread_std
 
     # Initialze output variable
     # Pair status options are FAILED, LIVE, CLOSE, ERROR
@@ -56,6 +60,8 @@ class BotAgent:
       "hedge_ratio": hedge_ratio,
       "z_score": z_score,
       "half_life": half_life,
+      "spread_mean": spread_mean,
+      "spread_std": spread_std,
       "order_id_m1": "",
       "order_m1_size": base_size,
       "order_m1_side": base_side,

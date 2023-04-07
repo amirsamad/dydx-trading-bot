@@ -2,6 +2,7 @@ import datetime
 from constants import ZSCORE_THRESH, USD_PER_TRADE, USD_MIN_COLLATERAL
 from func_utils import format_number
 from func_public import get_candles_recent
+from func_public import get_candles_latest
 from func_cointegration import calculate_zscore
 from func_private import is_open_positions
 from func_bot_agent import BotAgent
@@ -48,15 +49,24 @@ def open_positions(client):
     quote_market = row["quote_market"]
     hedge_ratio = row["hedge_ratio"]
     half_life = row["half_life"]
+    spread_mean = row["spread_mean"]
+    spread_std = row["spread_std"]
+
 
     # Get prices
-    series_1 = get_candles_recent(client, base_market)
-    series_2 = get_candles_recent(client, quote_market)
+    price_1 = get_candles_latest(client, base_market)
+    price_2 = get_candles_latest(client, quote_market)
+    #series_1 = get_candles_recent(client, base_market)
+    #series_2 = get_candles_recent(client, quote_market)
 
     # Get ZScore
-    if len(series_1) > 0 and len(series_1) == len(series_2):
-      spread = series_1 - (hedge_ratio * series_2)
-      z_score = calculate_zscore(spread).values.tolist()[-1]
+    if True:
+      spread = price_1 - (hedge_ratio * price_2)
+      z_score = (spread - spread_mean) / spread_std
+
+    #if len(series_1) > 0 and len(series_1) == len(series_2):
+    #  spread = series_1 - (hedge_ratio * series_2)
+    #  z_score = calculate_zscore(spread).values.tolist()[-1]
 
       #if z_score > 0: z_score = 1.8
       #else: z_score = -1.8
@@ -141,7 +151,9 @@ def open_positions(client):
               accept_failsafe_base_price=accept_failsafe_base_price,
               z_score=z_score,
               half_life=half_life,
-              hedge_ratio=hedge_ratio
+              hedge_ratio=hedge_ratio,
+              spread_mean=spread_mean,
+              spread_std=spread_std
             )
 
             # Open Trades
@@ -165,6 +177,8 @@ def open_positions(client):
               hedge_ratio = bot_open_dict["hedge_ratio"]
               z_score = bot_open_dict["z_score"]
               half_life = bot_open_dict["half_life"]
+              spread_mean = bot_open_dict["spread_mean"]
+              spread_std = bot_open_dict["spread_std"]
 
               market_1 = bot_open_dict["market_1"]
               order_id_m1 = bot_open_dict["order_id_m1"]
@@ -183,16 +197,16 @@ def open_positions(client):
               fill_2 = call_client(client.private.get_fills, market=market_2)
               actual_price_m2 = get_average_price(fill_2, market_2, order_id_m2, order_m2_size)
 
-              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {market_1}/{market_2}, Z score: {round(z_score, 2)}, half life: {round(half_life, 1)}, hedge ratio: {round(hedge_ratio, 3)}, new balance: {round(free_collateral_after,2)} ({round(free_collateral,2)})", flush=True)
-              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m1_side} {order_m1_size} units of {market_1} at {actual_price_m1} ({base_price}, {accept_base_price}) ", flush=True)
-              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m2_side} {order_m2_size} units of {market_2} at {actual_price_m2} ({quote_price}, {accept_quote_price}) ", flush=True)
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN {market_1}/{market_2}, {order_m1_side} {market_1}:{actual_price_m1} ({base_price}, {accept_base_price}), {order_m2_side} {market_2}:{actual_price_m2} ({quote_price}, {accept_quote_price}) Zscore: {round(z_score, 2)}, hlife: {round(half_life, 1)}, hratio: {round(hedge_ratio, 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral,2) - round(free_collateral_after,2)}", flush=True)
+              #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m1_side} {order_m1_size} units of {market_1} at {actual_price_m1} ({base_price}, {accept_base_price}) ", flush=True)
+              #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m2_side} {order_m2_size} units of {market_2} at {actual_price_m2} ({quote_price}, {accept_quote_price}) ", flush=True)
 
               # Append to list of bot agents
               bot_agents.append(bot_open_dict)
               del(bot_open_dict)
 
               # Confirm live status in print
-              #print("Trade status: Live")
+              #print("Trade status: Live") 
               #print("---")
 
   # Save agents

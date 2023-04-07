@@ -14,7 +14,7 @@ from func_utils import get_num_open_pairs
 if __name__ == "__main__":
 
   # Message on start
-  send_message("Bot launch successful")
+  #send_message("Bot launch successful")
 
   # Connect to client
   client = connect_dydx()
