@@ -13,6 +13,7 @@ from pprint import pprint
 
 from func_utils import call_client
 from func_utils import get_average_price
+from func_messaging import send_message
 
 
 # Open positions
@@ -198,6 +199,8 @@ def open_positions(client):
               actual_price_m2 = get_average_price(fill_2, market_2, order_id_m2, order_m2_size)
 
               print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN {market_1}/{market_2}, {order_m1_side} {market_1}:{actual_price_m1} ({base_price}, {accept_base_price}), {order_m2_side} {market_2}:{actual_price_m2} ({quote_price}, {accept_quote_price}) Zscore: {round(z_score, 2)}, hlife: {round(half_life, 1)}, hratio: {round(hedge_ratio, 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral - free_collateral_after,2)}", flush=True)
+              send_message(f"OPEN {market_1}/{market_2}, {order_m1_side} {market_1}, {order_m2_side} {market_2}, Zscore: {round(z_score, 2)}")
+              
               #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m1_side} {order_m1_size} units of {market_1} at {actual_price_m1} ({base_price}, {accept_base_price}) ", flush=True)
               #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m2_side} {order_m2_size} units of {market_2} at {actual_price_m2} ({quote_price}, {accept_quote_price}) ", flush=True)
 
