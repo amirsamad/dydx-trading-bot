@@ -95,8 +95,8 @@ def open_positions(client):
           quote_side = "BUY" if z_score > 0 else "SELL"
 
           # Get acceptable price in string format with correct number of decimals
-          base_price = series_1[-1]
-          quote_price = series_2[-1]
+          base_price = price_1 #series_1[-1]
+          quote_price = price_2 #series_2[-1]
           accept_base_price = float(base_price) * 1.01 if z_score < 0 else float(base_price) * 0.99
           accept_quote_price = float(quote_price) * 1.01 if z_score > 0 else float(quote_price) * 0.99
           failsafe_base_price = float(base_price) * 0.05 if z_score < 0 else float(base_price) * 1.7
@@ -197,7 +197,7 @@ def open_positions(client):
               fill_2 = call_client(client.private.get_fills, market=market_2)
               actual_price_m2 = get_average_price(fill_2, market_2, order_id_m2, order_m2_size)
 
-              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN {market_1}/{market_2}, {order_m1_side} {market_1}:{actual_price_m1} ({base_price}, {accept_base_price}), {order_m2_side} {market_2}:{actual_price_m2} ({quote_price}, {accept_quote_price}) Zscore: {round(z_score, 2)}, hlife: {round(half_life, 1)}, hratio: {round(hedge_ratio, 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral,2) - round(free_collateral_after,2)}", flush=True)
+              print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN {market_1}/{market_2}, {order_m1_side} {market_1}:{actual_price_m1} ({base_price}, {accept_base_price}), {order_m2_side} {market_2}:{actual_price_m2} ({quote_price}, {accept_quote_price}) Zscore: {round(z_score, 2)}, hlife: {round(half_life, 1)}, hratio: {round(hedge_ratio, 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral - free_collateral_after,2)}", flush=True)
               #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m1_side} {order_m1_size} units of {market_1} at {actual_price_m1} ({base_price}, {accept_base_price}) ", flush=True)
               #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] OPEN --- {order_m2_side} {order_m2_size} units of {market_2} at {actual_price_m2} ({quote_price}, {accept_quote_price}) ", flush=True)
 

@@ -18,7 +18,7 @@ def get_candles_latest(client, market):
     limit=1
   )
   latest_price = candles.data["candles"][0]["close"]
-  return latest_price
+  return float(latest_price)
 
 # Get Candles recent
 def get_candles_recent(client, market):

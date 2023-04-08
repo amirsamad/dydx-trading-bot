@@ -89,8 +89,6 @@ def manage_trade_exits(client):
     order_side_m2 = order_m2.data["order"]["side"]
     order_price_m2 = order_m2.data["order"]["price"]
 
-    #if position_market_m1 == "BCH-USD" and position_market_m2 == "AAVE-USD":
-    #  is_close = True
 
     # Perform matching checks
     check_m1 = position_market_m1 == order_market_m1 and float(position_size_m1) == float(order_size_m1) and position_side_m1 == order_side_m1
@@ -137,10 +135,14 @@ def manage_trade_exits(client):
       spread_std = position["spread_std"]
       #if len(series_1) > 0 and len(series_1) == len(series_2):
         #spread = series_1 - (hedge_ratio * series_2)
-      if True:
-        spread = price_1 - (hedge_ratio * price_2)
-        z_score_current = (spread - spread_mean) / spread_std
-        #z_score_current = calculate_zscore(spread).values.tolist()[-1]
+
+      spread = price_1 - (hedge_ratio * price_2)
+      z_score_current = (spread - spread_mean) / spread_std
+      #z_score_current = calculate_zscore(spread).values.tolist()[-1]
+
+      
+      #if position_market_m1 == "XTZ-USD" and position_market_m2 == "NEAR-USD":
+      #  is_close = True
 
       # Determine trigger
       z_score_level_check = abs(z_score_current) >= abs(z_score_traded)
@@ -174,8 +176,10 @@ def manage_trade_exits(client):
         side_m2 = "BUY"
 
       # Get and format Price
-      price_m1 = float(series_1[-1])
-      price_m2 = float(series_2[-1])
+      #price_m1 = float(series_1[-1])
+      #price_m2 = float(series_2[-1])
+      price_m1 = price_1
+      price_m2 = price_2
       accept_price_m1 = price_m1 * 1.05 if side_m1 == "BUY" else price_m1 * 0.95
       accept_price_m2 = price_m2 * 1.05 if side_m2 == "BUY" else price_m2 * 0.95
       tick_size_m1 = markets["markets"][position_market_m1]["tickSize"]
@@ -247,7 +251,7 @@ def manage_trade_exits(client):
         actual_price_m2 = get_average_price(fill_2, position_market_m2, order_id_m2, position_size_m2)
 
         try:
-          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE {position_market_m1}/{position_market_m2}, {position_side_m2} {position_market_m1} at {actual_price_m1} ({order_price_m1}), {position_side_m1} {position_market_m2} at {actual_price_m2} ({order_price_m2}) New Zscore: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), hlife: {round(float(half_life), 1)}, hratio: {round(float(hedge_ratio), 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral_after,2) - round(free_collateral,2)}", flush=True)
+          print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE {position_market_m1}/{position_market_m2}, {position_side_m2} {position_market_m1} at {actual_price_m1} ({order_price_m1}), {position_side_m1} {position_market_m2} at {actual_price_m2} ({order_price_m2}) New Zscore: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), hlife: {round(float(half_life), 1)}, hratio: {round(float(hedge_ratio), 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral_after - free_collateral,2)}", flush=True)
           #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})", flush=True)
           #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})", flush=True)
 
