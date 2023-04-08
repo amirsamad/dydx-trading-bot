@@ -252,6 +252,7 @@ def manage_trade_exits(client):
 
         try:
           print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE {position_market_m1}/{position_market_m2}, {position_side_m2} {position_market_m1} at {actual_price_m1} ({order_price_m1}), {position_side_m1} {position_market_m2} at {actual_price_m2} ({order_price_m2}) New Zscore: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), hlife: {round(float(half_life), 1)}, hratio: {round(float(hedge_ratio), 3)}, mean: {round(spread_mean, 2)}, stdev: {round(spread_std, 2)}, amount: {round(free_collateral_after - free_collateral,2)}", flush=True)
+          send_message(f"CLOSE {position_market_m1}/{position_market_m2}, {position_side_m2} {position_market_m1} at {actual_price_m1} ({order_price_m1}), {position_side_m1} {position_market_m2} at {actual_price_m2} ({order_price_m2}) New Zscore: {round(float(z_score_current), 2)} ({round(float(z_score_traded), 2)}), amount: {round(free_collateral_after - free_collateral,2)}")
           #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m1} {position_size_m1} units of {position_market_m1} at {actual_price_m1} ({order_price_m1})", flush=True)
           #print(f"[{datetime.datetime.now():%H:%M:%S %d-%m-%y}] CLOSE --- {position_side_m2} {position_size_m2} units of {position_market_m2} at {actual_price_m2} ({order_price_m2})", flush=True)
 
