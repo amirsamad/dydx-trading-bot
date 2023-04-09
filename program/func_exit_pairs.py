@@ -15,7 +15,119 @@ from pprint import pprint
 from func_utils import get_average_price
 from func_messaging import send_message
 
+def print_current_zscores(client):
+  # Opening JSON file
+  try:
+    open_positions_file = open("bot_agents.json")
+    open_positions_dict = json.load(open_positions_file)
+    open_positions_file.close()
+  except:
+    return "complete"
 
+  # Guard: Exit if no open positions in file
+  if len(open_positions_dict) < 1:
+    return "complete"
+
+  # Get all open positions per trading platform
+  #exchange_pos = client.private.get_positions(status="OPEN")
+  exchange_pos = call_client(client.private.get_positions, status="OPEN")
+  all_exc_pos = exchange_pos.data["positions"]
+  markets_live = []
+  for p in all_exc_pos:
+    markets_live.append(p["market"])
+
+  # Protect API
+  time.sleep(0.5)
+
+  # Check all saved positions match order record
+  # Exit trade according to any exit trade rules
+  for position in open_positions_dict:
+
+    # Initialize is_close trigger
+    is_close = False
+
+    # Extract position matching information from file - market 1
+    position_market_m1 = position["market_1"]
+    position_size_m1 = position["order_m1_size"]
+    position_side_m1 = position["order_m1_side"]
+
+    # Extract position matching information from file - market 2
+    position_market_m2 = position["market_2"]
+    position_size_m2 = position["order_m2_size"]
+    position_side_m2 = position["order_m2_side"]
+
+    # Protect API
+    time.sleep(0.5)
+
+    # Get order info m1 per exchange
+    #order_m1 = client.private.get_order_by_id(position["order_id_m1"])
+    order_m1 = call_client(client.private.get_order_by_id, position["order_id_m1"])
+    order_market_m1 = order_m1.data["order"]["market"]
+    order_size_m1 = order_m1.data["order"]["size"]
+    order_side_m1 = order_m1.data["order"]["side"]
+    order_price_m1 = order_m1.data["order"]["price"]
+
+    # Protect API
+    time.sleep(0.5)
+
+    # Get order info m2 per exchange
+    #order_m2 = client.private.get_order_by_id(position["order_id_m2"])
+    order_m2 = call_client(client.private.get_order_by_id, position["order_id_m2"])
+    order_market_m2 = order_m2.data["order"]["market"]
+    order_size_m2 = order_m2.data["order"]["size"]
+    order_side_m2 = order_m2.data["order"]["side"]
+    order_price_m2 = order_m2.data["order"]["price"]
+
+
+    # Perform matching checks
+    check_m1 = position_market_m1 == order_market_m1 and float(position_size_m1) == float(order_size_m1) and position_side_m1 == order_side_m1
+    check_m2 = position_market_m2 == order_market_m2 and float(position_size_m2) == float(order_size_m2) and position_side_m2 == order_side_m2
+    check_live = position_market_m1 in markets_live and position_market_m2 in markets_live
+
+    # Guard: If not all match exit with error
+    if not check_m1 or not check_m2 or not check_live:
+      if not check_m1: print("check_m1")
+      if not check_m2:
+        print("check_m2")
+        print(position_market_m2)
+        print(order_market_m2)
+        print(position_size_m2)
+        print(order_size_m2)
+        print(position_side_m2)
+        print(order_side_m2)
+      if not check_live: print("check_live")
+      print(f"Warning: Not all open positions match exchange records for {position_market_m1} and {position_market_m2}", flush=True)
+      continue
+
+    # Get prices
+    price_1 = get_candles_latest(client, position_market_m1)
+    price_2 = get_candles_latest(client, position_market_m2)
+
+    # Get markets for reference of tick size
+    markets = call_client(client.public.get_markets).data
+
+    # Protect API
+    time.sleep(0.2)
+
+    # Initialize z_scores\
+    half_life = position["half_life"]
+    hedge_ratio = position["hedge_ratio"]
+    z_score_traded = position["z_score"]
+    spread_mean = position["spread_mean"]
+    spread_std = position["spread_std"]
+    #if len(series_1) > 0 and len(series_1) == len(series_2):
+      #spread = series_1 - (hedge_ratio * series_2)
+
+    spread = price_1 - (hedge_ratio * price_2)
+    z_score_current = (spread - spread_mean) / spread_std
+
+    order_time_m1 = position["order_time_m1"]
+    now_time = datetime.datetime.now()
+    order_time = datetime.datetime.fromisoformat(order_time_m1)
+    time_delta = now_time - order_time
+
+    print(f"zscore for {position_market_m1}/{position_market_m2} now at {round(z_score_current,2)} ({round(z_score_traded,2)}) ({int(time_delta.total_seconds()/60/60)} hours ago)")
+    send_message(f"zscore for {position_market_m1}/{position_market_m2} now at {round(z_score_current,2)} ({round(z_score_traded,2)}) ({int(time_delta.total_seconds()/60/60)} hours ago)")
 
 # Manage trade exits
 def manage_trade_exits(client):

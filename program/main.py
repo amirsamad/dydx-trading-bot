@@ -8,6 +8,7 @@ from func_entry_pairs import open_positions
 from func_exit_pairs import manage_trade_exits
 from func_messaging import send_message
 from func_utils import get_num_open_pairs
+from func_exit_pairs import print_current_zscores
 
 
 # MAIN FUNCTION
@@ -18,6 +19,7 @@ if __name__ == "__main__":
 
   # Connect to client
   client = connect_dydx()
+  print_current_zscores(client)
 
   # Abort all open positions
   if ABORT_ALL_POSITIONS:
