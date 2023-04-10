@@ -257,8 +257,8 @@ def manage_trade_exits(client):
       #  is_close = True
 
       # Determine trigger
-      #z_score_level_check = abs(z_score_current) >= abs(z_score_traded)
-      z_score_level_check = True
+      z_score_level_check = abs(z_score_current) >= abs(z_score_traded)
+      #z_score_level_check = True
       if z_score_level_check:
         z_score_cross_check = (z_score_current < 0 and z_score_traded > 0) or (z_score_current > 0 and z_score_traded < 0)
 
